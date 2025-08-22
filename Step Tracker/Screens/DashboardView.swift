@@ -31,7 +31,7 @@ struct DashboardView: View {
                     
                     StepBarChart(selectedStat: selectedStat, chartData: healthKitManager.stepData)
                     
-                    StepPieChart(chartData: ChartMath.averageWeekdayCount(for: HealthMetric.mockData))
+                    StepPieChart(chartData: ChartMath.averageWeekdayCount(for: healthKitManager.stepData))
                 }
             }
             .padding()
