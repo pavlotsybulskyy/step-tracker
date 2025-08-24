@@ -43,6 +43,7 @@ struct DashboardView: View {
             .task {
                 await healthKitManager.fetchStepCount()
                 await healthKitManager.fetchWeightsCount()
+                await healthKitManager.fetchWeightForDifferencials()
                 isShowPermissionPrimingSheet = !hasSeenPermissionPriming
             }
             .navigationTitle("Dashboard")
