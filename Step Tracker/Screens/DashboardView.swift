@@ -29,14 +29,19 @@ struct DashboardView: View {
                     }
                     .pickerStyle(.segmented)
                     
-                    StepBarChart(selectedStat: selectedStat, chartData: healthKitManager.stepData)
-                    
-                    StepPieChart(chartData: ChartMath.averageWeekdayCount(for: healthKitManager.stepData))
+                    switch selectedStat {
+                    case .steps:
+                        StepBarChart(selectedStat: selectedStat, chartData: healthKitManager.stepData)
+                        StepPieChart(chartData: ChartMath.averageWeekdayCount(for: healthKitManager.stepData))
+                    case .weight:
+                        WeightLineChart(selectedStat: selectedStat, chartData: healthKitManager.weightData)
+                    }
                 }
             }
             .padding()
             .task {
                 await healthKitManager.fetchStepCount()
+                await healthKitManager.fetchWeightsCount()
                 isShowPermissionPrimingSheet = !hasSeenPermissionPriming
             }
             .navigationTitle("Dashboard")
