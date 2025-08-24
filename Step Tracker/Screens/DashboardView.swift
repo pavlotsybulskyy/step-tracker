@@ -35,6 +35,7 @@ struct DashboardView: View {
                         StepPieChart(chartData: ChartMath.averageWeekdayCount(for: healthKitManager.stepData))
                     case .weight:
                         WeightLineChart(selectedStat: selectedStat, chartData: healthKitManager.weightData)
+                        WeightDiffBarChart(chartData: ChartMath.averageDailyWeightDifference(for: MockData.weights))
                     }
                 }
             }

@@ -23,7 +23,7 @@ struct StepBarChart: View {
     }
     
     var selectedHealthMetric: HealthMetric? {
-        guard let selectedDate  else { return nil }
+        guard let selectedDate else { return nil }
         
         return chartData.first {
             Calendar.current.isDate(selectedDate, inSameDayAs: $0.date)
