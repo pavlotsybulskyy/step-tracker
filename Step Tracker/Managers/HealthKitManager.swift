@@ -83,7 +83,7 @@ import Observation
             weightData = weights.statistics().map {
                 HealthMetric(
                     date: $0.startDate,
-                    value: $0.mostRecentQuantity()?.doubleValue(for: .count()) ?? 0
+                    value: $0.mostRecentQuantity()?.doubleValue(for: .pound()) ?? 0
                 )
             }
         } catch {
@@ -118,12 +118,36 @@ import Observation
             weightDiffData = weights.statistics().map {
                 HealthMetric(
                     date: $0.startDate,
-                    value: $0.mostRecentQuantity()?.doubleValue(for: .count()) ?? 0
+                    value: $0.mostRecentQuantity()?.doubleValue(for: .pound()) ?? 0
                 )
             }
         } catch {
             
         }
+    }
+    
+    func addStepData(for date: Date, value: Double) async {
+        let stepQuantity = HKQuantity(unit: .count(), doubleValue: value)
+        let stepSample = HKQuantitySample(
+            type: HKQuantityType(.stepCount),
+            quantity: stepQuantity,
+            start: date,
+            end: date
+        )
+        
+        try! await store.save(stepSample)
+    }
+    
+    func addWeightData(for date: Date, value: Double) async {
+        let weightQuantity = HKQuantity(unit: .pound(), doubleValue: value)
+        let weightSample = HKQuantitySample(
+            type: HKQuantityType(.bodyMass),
+            quantity: weightQuantity,
+            start: date,
+            end: date
+        )
+        
+        try! await store.save(weightSample)
     }
     
 //    func addSimulatorData() async {

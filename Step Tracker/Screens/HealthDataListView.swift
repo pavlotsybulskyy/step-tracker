@@ -9,18 +9,26 @@ import SwiftUI
 
 struct HealthDataListView: View {
     
-    var metric: HealthMetricContext
+    @Environment(HealthKitManager.self) private var healthKitManager
     
     @State private var isShowingAddData: Bool = false
     @State private var addDataDate: Date = .now
     @State private var valuetoAdd: String = ""
     
+    var metric: HealthMetricContext
+    
+    private var isSteps: Bool { metric == .steps }
+    
+    var listData: [HealthMetric] {
+        isSteps ? healthKitManager.stepData : healthKitManager.weightData
+    }
+    
     var body: some View {
-        List(0..<28) { i in
+        List(listData.reversed()) { data in
             HStack {
-                Text(Date(), format: .dateTime.month().day().year())
+                Text(data.date, format: .dateTime.month().day().year())
                 Spacer()
-                Text(10000, format: .number.precision(.fractionLength(metric == .steps ? 0 : 1)))
+                Text(data.value, format: .number.precision(.fractionLength(isSteps ? 0 : 1)))
             }
         }
         .navigationTitle(metric.title)
@@ -44,17 +52,27 @@ struct HealthDataListView: View {
                     TextField("Value", text: $valuetoAdd)
                         .multilineTextAlignment(.trailing)
                         .frame(width: 140)
-                        .keyboardType(metric == .steps ? .numberPad : .decimalPad)
+                        .keyboardType(isSteps ? .numberPad : .decimalPad)
                 }
             }
             .navigationTitle(metric.title)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Add data") {
-                        // Do code later
+                        Task {
+                            if isSteps {
+                                await healthKitManager.addStepData(for: addDataDate, value: Double(valuetoAdd)!)
+                                await healthKitManager.fetchStepCount()
+                                isShowingAddData = false
+                            } else {
+                                await healthKitManager.addWeightData(for: addDataDate, value: Double(valuetoAdd)!)
+                                await healthKitManager.fetchWeightsCount()
+                                await healthKitManager.fetchWeightForDifferencials()
+                                isShowingAddData = false
+                            }
+                        }
                     }
                 }
-                
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Dismiss") {
                         isShowingAddData = false
@@ -68,5 +86,6 @@ struct HealthDataListView: View {
 #Preview {
     NavigationStack {
         HealthDataListView(metric: .weight)
+            .environment(HealthKitManager())
     }
 }
