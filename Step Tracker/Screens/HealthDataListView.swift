@@ -14,7 +14,7 @@ struct HealthDataListView: View {
     @State private var isShowingAddData: Bool = false
     @State private var addDataDate: Date = .now
     @State private var valuetoAdd: String = ""
-    
+        
     var metric: HealthMetricContext
     
     private var isSteps: Bool { metric == .steps }
@@ -61,14 +61,26 @@ struct HealthDataListView: View {
                     Button("Add data") {
                         Task {
                             if isSteps {
-                                await healthKitManager.addStepData(for: addDataDate, value: Double(valuetoAdd)!)
-                                await healthKitManager.fetchStepCount()
-                                isShowingAddData = false
+                                do {
+                                    try await healthKitManager.addStepData(for: addDataDate, value: Double(valuetoAdd)!)
+                                    try await healthKitManager.fetchStepCount()
+                                    isShowingAddData = false
+                                } catch STError.sharedDenied(let quantityType) {
+                                    print("sharedDenied \(quantityType)")
+                                } catch {
+                                    print("Data list view unable to complete request: \(error)")
+                                }
                             } else {
-                                await healthKitManager.addWeightData(for: addDataDate, value: Double(valuetoAdd)!)
-                                await healthKitManager.fetchWeightsCount()
-                                await healthKitManager.fetchWeightForDifferencials()
-                                isShowingAddData = false
+                                do {
+                                    try await healthKitManager.addWeightData(for: addDataDate, value: Double(valuetoAdd)!)
+                                    try await healthKitManager.fetchWeightsCount()
+                                    try await healthKitManager.fetchWeightForDifferencials()
+                                    isShowingAddData = false
+                                } catch STError.sharedDenied(let quantityType) {
+                                    print("sharedDenied \(quantityType)")
+                                } catch {
+                                    print("Data list view unable to complete request: \(error)")
+                                }
                             }
                         }
                     }
