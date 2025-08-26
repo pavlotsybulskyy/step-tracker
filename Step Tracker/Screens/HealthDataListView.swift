@@ -12,9 +12,11 @@ struct HealthDataListView: View {
     @Environment(HealthKitManager.self) private var healthKitManager
     
     @State private var isShowingAddData: Bool = false
+    @State private var isShowingAlert: Bool = false
+    @State private var writeError: STError = .noData
     @State private var addDataDate: Date = .now
     @State private var valuetoAdd: String = ""
-    
+        
     var metric: HealthMetricContext
     
     private var isSteps: Bool { metric == .steps }
@@ -56,19 +58,55 @@ struct HealthDataListView: View {
                 }
             }
             .navigationTitle(metric.title)
+            .alert(
+                isPresented: $isShowingAlert,
+                error: writeError,
+                actions: { writeError in
+                    switch writeError {
+                    case .authNotDetermined,
+                            .noData,
+                            .unableToCompleteRequest:
+                        EmptyView()
+                    case .sharedDenied(let quantityType):
+                        Button("Settings") {
+                            UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
+                        }
+                        Button("Cancel", role: .cancel) {}
+                    }
+                },
+                message: { writeError in
+                    Text(writeError.failureReason)
+                }
+            )
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Add data") {
                         Task {
                             if isSteps {
-                                await healthKitManager.addStepData(for: addDataDate, value: Double(valuetoAdd)!)
-                                await healthKitManager.fetchStepCount()
-                                isShowingAddData = false
+                                do {
+                                    try await healthKitManager.addStepData(for: addDataDate, value: Double(valuetoAdd)!)
+                                    try await healthKitManager.fetchStepCount()
+                                    isShowingAddData = false
+                                } catch STError.sharedDenied(let quantityType) {
+                                    writeError = .sharedDenied(quantityType: quantityType)
+                                    isShowingAlert = true
+                                } catch {
+                                    writeError = .unableToCompleteRequest
+                                    isShowingAlert = true
+                                }
                             } else {
-                                await healthKitManager.addWeightData(for: addDataDate, value: Double(valuetoAdd)!)
-                                await healthKitManager.fetchWeightsCount()
-                                await healthKitManager.fetchWeightForDifferencials()
-                                isShowingAddData = false
+                                do {
+                                    try await healthKitManager.addWeightData(for: addDataDate, value: Double(valuetoAdd)!)
+                                    try await healthKitManager.fetchWeightsCount()
+                                    try await healthKitManager.fetchWeightForDifferencials()
+                                    isShowingAddData = false
+                                } catch STError.sharedDenied(let quantityType) {
+                                    writeError = .sharedDenied(quantityType: quantityType)
+                                    isShowingAlert = true
+                                } catch {
+                                    writeError = .unableToCompleteRequest
+                                    isShowingAlert = true
+                                }
                             }
                         }
                     }

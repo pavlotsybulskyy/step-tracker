@@ -11,9 +11,10 @@ struct DashboardView: View {
     
     @Environment(HealthKitManager.self) private var healthKitManager
     
-    @AppStorage("hasSeenPermissionPriming") private var hasSeenPermissionPriming = false
     @State private var isShowPermissionPrimingSheet: Bool = false
     @State private var selectedStat: HealthMetricContext = .steps
+    @State private var isShowingAlert: Bool = false
+    @State private var fetchError: STError = .noData
     
     var isSteps: Bool { selectedStat == .steps }
     
@@ -21,7 +22,6 @@ struct DashboardView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    
                     Picker("Selected Stat", selection: $selectedStat) {
                         ForEach(HealthMetricContext.allCases) {
                             Text($0.title)
@@ -41,10 +41,19 @@ struct DashboardView: View {
             }
             .padding()
             .task {
-                await healthKitManager.fetchStepCount()
-                await healthKitManager.fetchWeightsCount()
-                await healthKitManager.fetchWeightForDifferencials()
-                isShowPermissionPrimingSheet = !hasSeenPermissionPriming
+                do {
+                    try await healthKitManager.fetchStepCount()
+                    try await healthKitManager.fetchWeightsCount()
+                    try await healthKitManager.fetchWeightForDifferencials()
+                } catch STError.authNotDetermined {
+                    isShowPermissionPrimingSheet = true
+                } catch STError.noData {
+                    fetchError = .noData
+                    isShowingAlert = true
+                } catch {
+                    fetchError = .unableToCompleteRequest
+                    isShowingAlert = true
+                }
             }
             .navigationTitle("Dashboard")
             .navigationDestination(for: HealthMetricContext.self) { metric in
@@ -56,7 +65,17 @@ struct DashboardView: View {
                     
                 },
                 content: {
-                    HealthKitPermissionPrimingView(hasSeen: $hasSeenPermissionPriming)
+                    HealthKitPermissionPrimingView()
+                }
+            )
+            .alert(
+                isPresented: $isShowingAlert,
+                error: fetchError,
+                actions: { fetchError in
+                    // Actions
+                },
+                message: { fetchError in
+                    Text(fetchError.failureReason)
                 }
             )
         }
