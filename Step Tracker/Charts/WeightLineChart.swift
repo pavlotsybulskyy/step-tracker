@@ -11,6 +11,7 @@ import Charts
 struct WeightLineChart: View {
     
     @State private var selectedDate: Date?
+    @State private var selectedDay: Date?
     
     var selectedStat: HealthMetricContext
     var chartData: [HealthMetric]
@@ -101,6 +102,11 @@ struct WeightLineChart: View {
         }
         .padding()
         .background(RoundedRectangle(cornerRadius: 12).fill(Color(.secondarySystemBackground)))
+        .onChange(of: selectedDate) { oldValue, newValue in
+            if oldValue?.weekday != newValue?.weekday {
+                selectedDay = newValue
+            }
+        }
     }
     
     var annotationView: some View {
