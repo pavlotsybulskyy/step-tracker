@@ -13,6 +13,8 @@ struct DashboardView: View {
     
     @State private var isShowPermissionPrimingSheet: Bool = false
     @State private var selectedStat: HealthMetricContext = .steps
+    @State private var isShowingAlert: Bool = false
+    @State private var fetchError: STError = .noData
     
     var isSteps: Bool { selectedStat == .steps }
     
@@ -20,7 +22,6 @@ struct DashboardView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    
                     Picker("Selected Stat", selection: $selectedStat) {
                         ForEach(HealthMetricContext.allCases) {
                             Text($0.title)
@@ -47,9 +48,11 @@ struct DashboardView: View {
                 } catch STError.authNotDetermined {
                     isShowPermissionPrimingSheet = true
                 } catch STError.noData {
-                    print("No data error")
+                    fetchError = .noData
+                    isShowingAlert = true
                 } catch {
-                    print("unadble to complete request")
+                    fetchError = .unableToCompleteRequest
+                    isShowingAlert = true
                 }
             }
             .navigationTitle("Dashboard")
@@ -63,6 +66,16 @@ struct DashboardView: View {
                 },
                 content: {
                     HealthKitPermissionPrimingView()
+                }
+            )
+            .alert(
+                isPresented: $isShowingAlert,
+                error: fetchError,
+                actions: { fetchError in
+                    // Actions
+                },
+                message: { fetchError in
+                    Text(fetchError.failureReason)
                 }
             )
         }
