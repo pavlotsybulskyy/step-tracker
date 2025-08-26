@@ -9,7 +9,9 @@ import SwiftUI
 import Charts
 
 struct WeightDiffBarChart: View {
+    
     @State private var selectedDate: Date?
+    @State private var selectedDay: Date?
     
     var chartData: [WeekdayChartData]
     
@@ -76,6 +78,11 @@ struct WeightDiffBarChart: View {
         }
         .padding()
         .background(RoundedRectangle(cornerRadius: 12).fill(Color(.secondarySystemBackground)))
+        .onChange(of: selectedDate) { oldValue, newValue in
+            if oldValue?.weekday != newValue?.weekday {
+                selectedDay = newValue
+            }
+        }
     }
     
     var annotationView: some View {
