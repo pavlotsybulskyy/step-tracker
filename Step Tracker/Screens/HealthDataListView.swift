@@ -67,7 +67,7 @@ struct HealthDataListView: View {
                             .noData,
                             .unableToCompleteRequest:
                         EmptyView()
-                    case .sharedDenied(let quantityType):
+                    case .sharedDenied:
                         Button("Settings") {
                             UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
                         }

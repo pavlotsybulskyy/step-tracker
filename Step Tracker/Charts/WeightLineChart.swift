@@ -48,55 +48,63 @@ struct WeightLineChart: View {
             }
             .foregroundStyle(.secondary)
             
-            Chart {
-                if let selectedHealthMetric {
-                    RuleMark(x: .value("Selected metric", selectedHealthMetric.date, unit: .day))
-                        .foregroundStyle(Color.secondary.opacity(0.3))
-                        .offset(y: -10)
-                        .annotation(
-                            position: .top,
-                            spacing: 0,
-                            overflowResolution: .init(x:.fit(to: .chart), y: .disabled),
-                            content: { annotationView }
+            if chartData.isEmpty {
+                ChartEmptyView(
+                    systemImageName: "chart.line.downtrend.xyaxis",
+                    title: "No Data",
+                    description: "There is no weight data from Health App"
+                )
+            } else {
+                Chart {
+                    if let selectedHealthMetric {
+                        RuleMark(x: .value("Selected metric", selectedHealthMetric.date, unit: .day))
+                            .foregroundStyle(Color.secondary.opacity(0.3))
+                            .offset(y: -10)
+                            .annotation(
+                                position: .top,
+                                spacing: 0,
+                                overflowResolution: .init(x:.fit(to: .chart), y: .disabled),
+                                content: { annotationView }
+                            )
+                    }
+                    
+                    RuleMark(y: .value("Goal", 155))
+                        .foregroundStyle(.mint)
+                        .lineStyle(.init(lineWidth: 1, dash: [5]))
+                    
+                    ForEach(chartData) { weight in
+                        AreaMark(
+                            x: .value("Day", weight.date, unit: .day),
+                            yStart: .value("Value", weight.value),
+                            yEnd: .value("Min value", minValue)
                         )
-                }
-                
-                RuleMark(y: .value("Goal", 155))
-                    .foregroundStyle(.mint)
-                    .lineStyle(.init(lineWidth: 1, dash: [5]))
-                
-                ForEach(chartData) { weight in
-                    AreaMark(
-                        x: .value("Day", weight.date, unit: .day),
-                        yStart: .value("Value", weight.value),
-                        yEnd: .value("Min value", minValue)
-                    )
-                    .foregroundStyle(Gradient(colors: [.indigo.opacity(0.5), .clear]))
-                    .interpolationMethod(.catmullRom)
+                        .foregroundStyle(Gradient(colors: [.indigo.opacity(0.5), .clear]))
+                        .interpolationMethod(.catmullRom)
 
-                    LineMark(
-                        x: .value("Day", weight.date, unit: .day),
-                        y: .value("Value", weight.value)
-                    )
-                    .foregroundStyle(.indigo)
-                    .interpolationMethod(.catmullRom)
-                    .symbol(.circle)
+                        LineMark(
+                            x: .value("Day", weight.date, unit: .day),
+                            y: .value("Value", weight.value)
+                        )
+                        .foregroundStyle(.indigo)
+                        .interpolationMethod(.catmullRom)
+                        .symbol(.circle)
+                    }
                 }
-            }
-            .frame(height: 150)
-            .chartXSelection(value: $selectedDate.animation(.easeInOut))
-            .chartForegroundStyleScale(["Goal - 155 kgs": .mint])
-            .chartYScale(domain: .automatic(includesZero: false))
-            .chartXAxis {
-                AxisMarks { value in
-                    AxisValueLabel(format: .dateTime.month().day())
+                .frame(height: 150)
+                .chartXSelection(value: $selectedDate.animation(.easeInOut))
+                .chartForegroundStyleScale(["Goal - 155 kgs": .mint])
+                .chartYScale(domain: .automatic(includesZero: false))
+                .chartXAxis {
+                    AxisMarks { value in
+                        AxisValueLabel(format: .dateTime.month().day())
+                    }
                 }
-            }
-            .chartYAxis {
-                AxisMarks { value in
-                    AxisGridLine()
-                        .foregroundStyle(.secondary.opacity(0.3))
-                    AxisValueLabel()
+                .chartYAxis {
+                    AxisMarks { value in
+                        AxisGridLine()
+                            .foregroundStyle(.secondary.opacity(0.3))
+                        AxisValueLabel()
+                    }
                 }
             }
         }
