@@ -65,7 +65,8 @@ struct HealthDataListView: View {
                     switch writeError {
                     case .authNotDetermined,
                             .noData,
-                            .unableToCompleteRequest:
+                            .unableToCompleteRequest,
+                            .invalidValue:
                         EmptyView()
                     case .sharedDenied:
                         Button("Settings") {
@@ -81,10 +82,17 @@ struct HealthDataListView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Add data") {
+                        guard let value = Double(valuetoAdd) else {
+                            writeError = .invalidValue
+                            isShowingAlert = true
+                            valuetoAdd = ""
+                            return
+                        }
+                        
                         Task {
                             if isSteps {
                                 do {
-                                    try await healthKitManager.addStepData(for: addDataDate, value: Double(valuetoAdd)!)
+                                    try await healthKitManager.addStepData(for: addDataDate, value: value)
                                     try await healthKitManager.fetchStepCount()
                                     isShowingAddData = false
                                 } catch STError.sharedDenied(let quantityType) {
@@ -96,7 +104,7 @@ struct HealthDataListView: View {
                                 }
                             } else {
                                 do {
-                                    try await healthKitManager.addWeightData(for: addDataDate, value: Double(valuetoAdd)!)
+                                    try await healthKitManager.addWeightData(for: addDataDate, value: value)
                                     try await healthKitManager.fetchWeightsCount()
                                     try await healthKitManager.fetchWeightForDifferencials()
                                     isShowingAddData = false
