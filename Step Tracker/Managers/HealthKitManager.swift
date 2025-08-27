@@ -13,17 +13,20 @@ enum STError: LocalizedError {
     case sharedDenied(quantityType: String)
     case noData
     case unableToCompleteRequest
+    case invalidValue
     
     var errorDescription: String? {
         switch self {
         case .authNotDetermined:
             return "Need access to Health Data"
-        case .sharedDenied(quantityType: let type):
+        case .sharedDenied:
             return "No write access"
         case .noData:
             return "No data available."
         case .unableToCompleteRequest:
             return "Unable to complete request"
+        case .invalidValue:
+            return "Invalid value"
         }
     }
     
@@ -37,6 +40,8 @@ enum STError: LocalizedError {
             return "There is no data for this Health statistic"
         case .unableToCompleteRequest:
             return "We are unable to complete your request at this time.\n\nPlease try again later or contact support"
+        case .invalidValue:
+            return "Must be a numeric value with a maximum of one decimal place"
         }
     }
 }
