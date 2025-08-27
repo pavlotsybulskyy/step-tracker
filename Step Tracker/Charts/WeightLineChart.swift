@@ -13,14 +13,10 @@ struct WeightLineChart: View {
     @State private var selectedDate: Date?
     @State private var selectedDay: Date?
     
-    var selectedStat: HealthMetricContext
-    var chartData: [HealthMetric]
+    var chartData: [DateValueChartData]
     
-    var selectedHealthMetric: HealthMetric? {
-        guard let selectedDate else { return nil }
-        return chartData.first {
-            Calendar.current.isDate(selectedDate, inSameDayAs: $0.date)
-        }
+    var selectedData: DateValueChartData? {
+        ChartHelper.parseSelectedData(from: chartData, in: selectedDate)
     }
     
     var minValue: Double {
@@ -28,26 +24,15 @@ struct WeightLineChart: View {
     }
     
     var body: some View {
-        VStack {
-            NavigationLink(value: selectedStat) {
-                HStack {
-                    VStack(alignment: .leading) {
-                        Label("Weight", systemImage: "figure")
-                            .font(.title3.bold())
-                            .foregroundStyle(.indigo)
-                        
-                        Text("Average: 180 kgs")
-                            .font(.caption)
-                    }
-                    
-                    Spacer()
-                    
-                    Image(systemName: "chevron.right")
-                }
-                .padding(.bottom, 12)
-            }
-            .foregroundStyle(.secondary)
-            
+        let config = ChartContainerConfiguration(
+            title: "Weight",
+            symbol: "figure",
+            subtitle: "Average: 180 kgs",
+            context: .weight,
+            isNav: true
+        )
+        
+        ChartContainer(config: config) {
             if chartData.isEmpty {
                 ChartEmptyView(
                     systemImageName: "chart.line.downtrend.xyaxis",
@@ -56,16 +41,8 @@ struct WeightLineChart: View {
                 )
             } else {
                 Chart {
-                    if let selectedHealthMetric {
-                        RuleMark(x: .value("Selected metric", selectedHealthMetric.date, unit: .day))
-                            .foregroundStyle(Color.secondary.opacity(0.3))
-                            .offset(y: -10)
-                            .annotation(
-                                position: .top,
-                                spacing: 0,
-                                overflowResolution: .init(x:.fit(to: .chart), y: .disabled),
-                                content: { annotationView }
-                            )
+                    if let selectedData {
+                        ChartAnnotationView(data: selectedData, context: .weight)
                     }
                     
                     RuleMark(y: .value("Goal", 155))
@@ -108,37 +85,14 @@ struct WeightLineChart: View {
                 }
             }
         }
-        .padding()
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color(.secondarySystemBackground)))
         .onChange(of: selectedDate) { oldValue, newValue in
             if oldValue?.weekday != newValue?.weekday {
                 selectedDay = newValue
             }
         }
     }
-    
-    var annotationView: some View {
-        VStack(alignment: .leading) {
-            Text(
-                selectedHealthMetric?.date ?? .now,
-                format: .dateTime.weekday(.abbreviated).month(.abbreviated).day()
-            )
-            .font(.footnote.bold())
-            .foregroundStyle(.secondary)
-            
-            Text(selectedHealthMetric?.value ?? 0, format: .number.precision(.fractionLength(1)))
-                .fontWeight(.heavy)
-                .foregroundStyle(.indigo)
-        }
-        .padding(12)
-        .background(
-            RoundedRectangle(cornerRadius: 4)
-                .fill(Color(.secondarySystemBackground))
-                .shadow(color: .secondary.opacity(0.3), radius: 2, x: 2, y: 2)
-        )
-    }
 }
 
 #Preview {
-    WeightLineChart(selectedStat: .weight, chartData: MockData.weights)
+    WeightLineChart(chartData: [])
 }
