@@ -1,13 +1,14 @@
 //
-//  AnnotationView.swift
+//  ChartAnnotationView.swift
 //  Step Tracker
 //
 //  Created by Pavlo Tsybulskyy on 28.08.2025.
 //
 
 import SwiftUI
+import Charts
 
-struct AnnotationView: View {
+struct ChartAnnotationView: ChartContent {
     let data: DateValueChartData
     let context: HealthMetricContext
     
@@ -15,7 +16,19 @@ struct AnnotationView: View {
         return context == .steps
     }
     
-    var body: some View {
+    var body: some ChartContent {
+        RuleMark(x: .value("Selected metric", data.date, unit: .day))
+            .foregroundStyle(Color.secondary.opacity(0.3))
+            .offset(y: -10)
+            .annotation(
+                position: .top,
+                spacing: 0,
+                overflowResolution: .init(x:.fit(to: .chart), y: .disabled),
+                content: { annotationView }
+            )
+    }
+    
+    var annotationView: some View {
         VStack(alignment: .leading) {
             Text(
                 data.date,

@@ -20,13 +20,15 @@ struct StepBarChart: View {
     }
     
     var body: some View {
-        ChartContainer(
+        let config = ChartContainerConfiguration(
             title: "Steps",
             symbol: "figure.walk",
             subtitle: "Average \(Int(ChartHelper.averageValue(for: chartData))) steps",
             context: .steps,
             isNav: true
-        ) {
+        )
+        
+        ChartContainer(config: config) {
             if chartData.isEmpty {
                 ChartEmptyView(
                     systemImageName: "chart.bar",
@@ -36,20 +38,7 @@ struct StepBarChart: View {
             } else {
                 Chart {
                     if let selectedData {
-                        RuleMark(x: .value("Selected metric", selectedData.date, unit: .day))
-                            .foregroundStyle(Color.secondary.opacity(0.3))
-                            .offset(y: -10)
-                            .annotation(
-                                position: .top,
-                                spacing: 0,
-                                overflowResolution: .init(x:.fit(to: .chart), y: .disabled),
-                                content: {
-                                    AnnotationView(
-                                        data: selectedData,
-                                        context: .steps
-                                    )
-                                }
-                            )
+                        ChartAnnotationView(data: selectedData, context: .steps)
                     }
                     RuleMark(y: .value("Averages", ChartHelper.averageValue(for: chartData)))
                         .foregroundStyle(.secondary)
