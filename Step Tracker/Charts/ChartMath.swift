@@ -9,23 +9,23 @@ import Foundation
 import Algorithms
 
 struct ChartMath {
-    static func averageWeekdayCount(for metric: [HealthMetric]) -> [WeekdayChartData] {
+    static func averageWeekdayCount(for metric: [HealthMetric]) -> [DateValueChartData] {
         let sortedByWeekday = metric.sorted { $0.date.weekday < $1.date.weekday }
         let weekdayArray = sortedByWeekday.chunked { $0.date.weekday == $1.date.weekday }
         
-        var weekdayChartData: [WeekdayChartData] = []
+        var weekdayChartData: [DateValueChartData] = []
         for array in weekdayArray {
             guard let first = array.first else { continue }
             let total = array.reduce(0) { $0 + $1.value }
             let avgSteps = total / Double(array.count)
             
-            weekdayChartData.append(WeekdayChartData(date: first.date, value: avgSteps))
+            weekdayChartData.append(DateValueChartData(date: first.date, value: avgSteps))
         }
         
         return weekdayChartData
     }
     
-    static func averageDailyWeightDifference(for weights: [HealthMetric]) -> [WeekdayChartData] {
+    static func averageDailyWeightDifference(for weights: [HealthMetric]) -> [DateValueChartData] {
         var diffValues: [(date: Date, value: Double)] = []
         
         guard weights.count > 1 else { return [] }
@@ -38,13 +38,13 @@ struct ChartMath {
         let sortedByWeekday = diffValues.sorted { $0.date.weekday < $1.date.weekday }
         let weekdayArray = sortedByWeekday.chunked { $0.date.weekday == $1.date.weekday }
         
-        var weekdayChartData: [WeekdayChartData] = []
+        var weekdayChartData: [DateValueChartData] = []
         for array in weekdayArray {
             guard let first = array.first else { continue }
             let total = array.reduce(0) { $0 + $1.value }
             let avgWeightDiff = total / Double(array.count)
             
-            weekdayChartData.append(WeekdayChartData(date: first.date, value: avgWeightDiff))
+            weekdayChartData.append(DateValueChartData(date: first.date, value: avgWeightDiff))
         }
         
         return weekdayChartData

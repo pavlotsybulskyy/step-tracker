@@ -31,11 +31,19 @@ struct DashboardView: View {
                     
                     switch selectedStat {
                     case .steps:
-                        StepBarChart(selectedStat: selectedStat, chartData: healthKitManager.stepData)
-                        StepPieChart(chartData: ChartMath.averageWeekdayCount(for: healthKitManager.stepData))
+                        StepBarChart(
+                            chartData: ChartHelper.convert(data: healthKitManager.stepData)
+                        )
+                        StepPieChart(
+                            chartData: ChartMath.averageWeekdayCount(for: healthKitManager.stepData)
+                        )
                     case .weight:
-                        WeightLineChart(selectedStat: selectedStat, chartData: healthKitManager.weightData)
-                        WeightDiffBarChart(chartData: ChartMath.averageDailyWeightDifference(for: healthKitManager.weightDiffData))
+                        WeightLineChart(
+                            chartData: ChartHelper.convert(data: healthKitManager.weightData)
+                        )
+                        WeightDiffBarChart(
+                            chartData: ChartMath.averageDailyWeightDifference(for: healthKitManager.weightDiffData)
+                        )
                     }
                 }
             }
