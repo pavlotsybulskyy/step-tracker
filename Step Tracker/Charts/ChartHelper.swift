@@ -14,13 +14,6 @@ struct ChartHelper {
         }
     }
     
-    static func averageValue(for data: [DateValueChartData]) -> Double {
-        guard !data.isEmpty else { return 0 }
-        
-        let totalSteps = data.reduce(0) { $0 + $1.value }
-        return totalSteps / Double(data.count)
-    }
-    
     static func parseSelectedData(
         from data: [DateValueChartData],
         in selectedDate: Date?
