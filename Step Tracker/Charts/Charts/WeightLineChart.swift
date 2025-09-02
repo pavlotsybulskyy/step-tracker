@@ -41,21 +41,25 @@ struct WeightLineChart: View {
                 }
                 
                 ForEach(chartData) { weight in
-                    AreaMark(
-                        x: .value("Day", weight.date, unit: .day),
-                        yStart: .value("Value", weight.value),
-                        yEnd: .value("Min value", minValue)
-                    )
-                    .foregroundStyle(Gradient(colors: [.indigo.opacity(0.5), .clear]))
-                    .interpolationMethod(.catmullRom)
-                    
-                    LineMark(
-                        x: .value("Day", weight.date, unit: .day),
-                        y: .value("Value", weight.value)
-                    )
-                    .foregroundStyle(.indigo)
-                    .interpolationMethod(.catmullRom)
-                    .symbol(.circle)
+                    Plot {
+                        AreaMark(
+                            x: .value("Day", weight.date, unit: .day),
+                            yStart: .value("Value", weight.value),
+                            yEnd: .value("Min value", minValue)
+                        )
+                        .foregroundStyle(Gradient(colors: [.indigo.opacity(0.5), .clear]))
+                        .interpolationMethod(.catmullRom)
+                        
+                        LineMark(
+                            x: .value("Day", weight.date, unit: .day),
+                            y: .value("Value", weight.value)
+                        )
+                        .foregroundStyle(.indigo)
+                        .interpolationMethod(.catmullRom)
+                        .symbol(.circle)
+                    }
+                    .accessibilityLabel(weight.date.formatted(.dateTime.month(.wide).day()))
+                    .accessibilityValue("\(weight.value.formatted(.number.precision(.fractionLength(1)))) pounds")
                 }
             }
             .frame(height: 150)
@@ -93,5 +97,5 @@ struct WeightLineChart: View {
 }
 
 #Preview {
-    WeightLineChart(chartData: [])
+    WeightLineChart(chartData: ChartHelper.convert(data: MockData.weights))
 }

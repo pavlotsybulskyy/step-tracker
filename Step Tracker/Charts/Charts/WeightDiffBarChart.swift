@@ -26,11 +26,15 @@ struct WeightDiffBarChart: View {
                     ChartAnnotationView(data: selectedData, context: .weight)
                 }
                 ForEach(chartData) { weightDiff in
-                    BarMark(
-                        x: .value("Date", weightDiff.date, unit:. day),
-                        y: .value("Weight Diff", weightDiff.value)
-                    )
-                    .foregroundStyle(weightDiff.value >= 0 ? Color.indigo.gradient : Color.mint.gradient)
+                    Plot {
+                        BarMark(
+                            x: .value("Date", weightDiff.date, unit:. day),
+                            y: .value("Weight Diff", weightDiff.value)
+                        )
+                        .foregroundStyle(weightDiff.value >= 0 ? Color.indigo.gradient : Color.mint.gradient)
+                    }
+                    .accessibilityLabel(weightDiff.date.formatted(.dateTime.weekday(.wide)))
+                    .accessibilityValue("\(weightDiff.value.formatted(.number.precision(.fractionLength(1)).sign(strategy: .always()))) pounds")
                 }
             }
             .frame(height: 150)
