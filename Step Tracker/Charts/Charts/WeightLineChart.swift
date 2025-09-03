@@ -23,33 +23,25 @@ struct WeightLineChart: View {
         chartData.map { $0.value }.min() ?? 0
     }
     
+    var average: Double {
+        return chartData.map { $0.value }.average
+    }
+    
     var body: some View {
-        let config = ChartContainerConfiguration(
-            title: "Weight",
-            symbol: "figure",
-            subtitle: "Average: 180 kgs",
-            context: .weight,
-            isNav: true
-        )
-        
-        ChartContainer(config: config) {
-            if chartData.isEmpty {
-                ChartEmptyView(
-                    systemImageName: "chart.line.downtrend.xyaxis",
-                    title: "No Data",
-                    description: "There is no weight data from Health App"
-                )
-            } else {
-                Chart {
-                    if let selectedData {
-                        ChartAnnotationView(data: selectedData, context: .weight)
-                    }
-                    
+        ChartContainer(chartType: .weightLine(average: average)) {
+            Chart {
+                if let selectedData {
+                    ChartAnnotationView(data: selectedData, context: .weight)
+                }
+                
+                if !chartData.isEmpty {
                     RuleMark(y: .value("Goal", 155))
                         .foregroundStyle(.mint)
                         .lineStyle(.init(lineWidth: 1, dash: [5]))
-                    
-                    ForEach(chartData) { weight in
+                }
+                
+                ForEach(chartData) { weight in
+                    Plot {
                         AreaMark(
                             x: .value("Day", weight.date, unit: .day),
                             yStart: .value("Value", weight.value),
@@ -57,7 +49,7 @@ struct WeightLineChart: View {
                         )
                         .foregroundStyle(Gradient(colors: [.indigo.opacity(0.5), .clear]))
                         .interpolationMethod(.catmullRom)
-
+                        
                         LineMark(
                             x: .value("Day", weight.date, unit: .day),
                             y: .value("Value", weight.value)
@@ -66,22 +58,33 @@ struct WeightLineChart: View {
                         .interpolationMethod(.catmullRom)
                         .symbol(.circle)
                     }
+                    .accessibilityLabel(weight.date.formatted(.dateTime.month(.wide).day()))
+                    .accessibilityValue("\(weight.value.formatted(.number.precision(.fractionLength(1)))) pounds")
                 }
-                .frame(height: 150)
-                .chartXSelection(value: $selectedDate.animation(.easeInOut))
-                .chartForegroundStyleScale(["Goal - 155 kgs": .mint])
-                .chartYScale(domain: .automatic(includesZero: false))
-                .chartXAxis {
-                    AxisMarks { value in
-                        AxisValueLabel(format: .dateTime.month().day())
-                    }
+            }
+            .frame(height: 150)
+            .chartXSelection(value: $selectedDate.animation(.easeInOut))
+            .chartForegroundStyleScale( chartData.isEmpty ? [:] : ["Goal - 155 kgs": .mint])
+            .chartYScale(domain: .automatic(includesZero: false))
+            .chartXAxis {
+                AxisMarks { value in
+                    AxisValueLabel(format: .dateTime.month().day())
                 }
-                .chartYAxis {
-                    AxisMarks { value in
-                        AxisGridLine()
-                            .foregroundStyle(.secondary.opacity(0.3))
-                        AxisValueLabel()
-                    }
+            }
+            .chartYAxis {
+                AxisMarks { value in
+                    AxisGridLine()
+                        .foregroundStyle(.secondary.opacity(0.3))
+                    AxisValueLabel()
+                }
+            }
+            .overlay {
+                if chartData.isEmpty {
+                    ChartEmptyView(
+                        systemImageName: "chart.line.downtrend.xyaxis",
+                        title: "No Data",
+                        description: "There is no weight data from Health App"
+                    )
                 }
             }
         }
@@ -94,5 +97,5 @@ struct WeightLineChart: View {
 }
 
 #Preview {
-    WeightLineChart(chartData: [])
+    WeightLineChart(chartData: ChartHelper.convert(data: MockData.weights))
 }
